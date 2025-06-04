@@ -23,6 +23,7 @@ import torch
 from termcolor import colored
 from torch.amp import GradScaler
 from torch.optim import Optimizer
+from torch.utils.tensorboard import SummaryWriter
 
 from lerobot.common.datasets.factory import make_dataset
 from lerobot.common.datasets.sampler import EpisodeAwareSampler
@@ -115,6 +116,7 @@ def train(cfg: TrainPipelineConfig):
     else:
         wandb_logger = None
         logging.info(colored("Logs will be saved locally.", "yellow", attrs=["bold"]))
+    writer = SummaryWriter(log_dir=cfg.output_dir, flush_secs=30)
 
     if cfg.seed is not None:
         set_seed(cfg.seed)
@@ -235,6 +237,8 @@ def train(cfg: TrainPipelineConfig):
                 if output_dict:
                     wandb_log_dict.update(output_dict)
                 wandb_logger.log_dict(wandb_log_dict, step)
+            tb_log_dir = train_tracker.to_dict()
+            writer.add_scalar(f"train loss", tb_log_dir["loss"], step)
             train_tracker.reset_averages()
 
         if cfg.save_checkpoint and is_saving_step:
