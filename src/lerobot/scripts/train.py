@@ -211,6 +211,8 @@ def train(cfg: TrainPipelineConfig):
             if isinstance(batch[key], torch.Tensor):
                 batch[key] = batch[key].to(device, non_blocking=device.type == "cuda")
 
+        if step == 0:
+            optimizer.param_groups[0]["lr"] = cfg.lr
         train_tracker, output_dict = update_policy(
             train_tracker,
             policy,
